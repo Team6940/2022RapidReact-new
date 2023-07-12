@@ -6,9 +6,12 @@ package frc.robot;
 
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.controller.ProfiledPIDController;
+import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
+import frc.robot.lib.team1706.LinearInterpolationTable;
 
+import java.awt.geom.Point2D;
 /**
  * The Constants class provides a convenient place for teams to hold robot-wide numerical or boolean
  * constants. This class should not be used for any other purpose. All constants should be declared
@@ -19,9 +22,128 @@ import edu.wpi.first.math.trajectory.TrapezoidProfile;
  */
 public final class Constants 
 {
+    public static final class IntakeConstants {
+        public static final int IntakerPort = 13;
+        public static final int IntakerSolenoidPort = 0;
+        public static final boolean vSwitchIntake = false;
+        public static final double INTAKE_OPEN_TIME = 0.0;
+        public static final double INTAKE_SPEED = 1;
+        public static final double INTAKE_EJECTION_SPEED = -0.5;
+    }
+    public static final class HoodConstants {
+        
+        public static final double kMinAngle = 0.5;
+        public static final double kMaxAngle = 38;
+        public static final double kHoodTolerance = 1.0;//degrees
+        
+        public static int HoodMotorPort = 14; //14
+        public static double HOOD_GEAR_RATIO = 12.7 ;  
+        
+        public static final double HOOD_HOME_ANGLE = 0; 
+        public static final double HOOD_MAX_ANGLE = 20; 
+        public static final double HOOD_MIN_ANGLE = 0;
+        
+        public static final double HOOD_EJECT_ANGLE = 10;  //TODO
+    }
+    public static final class ShooterConstants {
+        
+        public static final int BlockerMotorPort=12;
+        public static final double BlockerOutput=0.5;
+        public static final double BlockerFeedTime=2;
+
+        public static final double kAccelCompFactor = 0.100;
+
+        public static final double kHangarRPM = 1200;
+        
+        private static final Point2D[] kHoodPoints = new Point2D.Double[] {
+            // (distance, ty-angle)
+            new Point2D.Double(2.490/*90*/, 0.00), //
+            new Point2D.Double(2.976/*105*/, 0.00), //
+            new Point2D.Double(3.494/*120*/, 0.00), //
+            new Point2D.Double(3.836/*135*/, 0.00), //
+            new Point2D.Double(4.210/*150*/, 3.00), //
+            new Point2D.Double(4.755/*165*/, 5.00), //
+            new Point2D.Double(5.228/*180*/, 7.00), //
+            new Point2D.Double(5.677/*195*/, 9.00), //
+            new Point2D.Double(6.450/*210*/, 10.0), //
+            new Point2D.Double(7.380/*225*/, 12.0),//
+            new Point2D.Double(8.068/*270*/, 14.0),
+        };
+        public static final LinearInterpolationTable kHoodTable = new LinearInterpolationTable(kHoodPoints);
+    
+        private static final Point2D[] kRPMPoints = new Point2D.Double[] {
+            // (distance, shooterSpeedRPM)
+            new Point2D.Double(2.490/*90*/, 2200), //
+            new Point2D.Double(2.976/*135*/, 2240), //
+            new Point2D.Double(3.494/*150*/, 2290), //
+            new Point2D.Double(3.836/*165*/, 2350), //
+            new Point2D.Double(4.210/*180*/, 2370), //
+            new Point2D.Double(4.755/*195*/, 2440), //
+            new Point2D.Double(5.228/*210*/, 2530), //
+            new Point2D.Double(5.677/*225*/, 2660), //
+            new Point2D.Double(6.450/*240*/, 2710),
+            new Point2D.Double(7.380/*270*/, 2810),
+            new Point2D.Double(8.068/*270*/, 2900),
+        };        
+        public static final LinearInterpolationTable kRPMTable = new LinearInterpolationTable(kRPMPoints);
+
+        private static final Point2D[] kShotTimes = new Point2D.Double[] {
+        // (ty-angle,time)
+        new Point2D.Double(3.17/*135*/, 7.00),
+        };
+
+        public static final LinearInterpolationTable kTimeTable = new LinearInterpolationTable(kShotTimes);
+
+        public static final int SHOOTER_EJECT_SPEED = 1200;
+
+        public static final double SHOOTER_LAUNCH_ANGLE = 90-Math.toDegrees(0.35); //SHOOTER固定角度  //TODO
+        public static final double SHOOTER_MOUNT_HEIGHT = 0.83;  //SHOOTER高度  //TODO
+        public static final int SHOOT_L_MASTER_ID = 11;  //TODO
+        public static final int SHOOT_R_MASTER_ID = 12;  //TODO
+        public static final double SHOOTER_KS = 0 / 12;
+        public static final double SHOOTER_KV = 0 / 12;
+        public static final double SHOOTER_KA = 0 / 12;
+        public static final double ShootingDegreeTolerance= 3.;
+        public static final double ShootingFixSpeed = 1;
+        public static final double kFlywheelIdleVelocity = 1000; //RPM //TODO
+        public static double kFlyWheelEncoderReductionRatio =  1 ;  //TODO
+        public static double kFlyWheelWheelDiameter = 0.108;//The unit is meter //TODO
+        public static double kFlyWheelWheelDefaultSpeed = 3.0;  //meters/s //TODO
+        public static double kShooterTolerance = 30; //RPM //TODO
+        public static double kPreventShooterOscilliationRPM = 20;
+        public static double kFlyWheelCircumference = Math.PI * kFlyWheelWheelDiameter;
+        public static double kShootOneBallTime = 1.5; //TODO every one shooting ball time(seconds)
+        public static double kWaitBallTime = 0.5;
+        public static double kShootTestTime = 1;
+        public static double kShootOneWrongBallTime = 0.5 ; //TODO every one shooting ball time(seconds)
+    
+        public static final double [] angleCoefficients = {-0.00074772,	0.00107806,	-0.00056204, -0.000010622,
+                        0.01432893, -0.13352268, 0.00632465, 0.1574279, -0.01956647, 1.49045868};
+    
+        public static final double [] speedCoefficients = {0.00147817, -0.006165024, 0.006012544, 0.000764929,
+                        0.000124517, 0.662020587, -0.003419489, -0.59030299, 0.032468927, 6.108893599};
+    }
     public static final class GlobalConstants {
         public static final double kLoopTime = 0.020;
         public static final float INF = (float)Math.pow(10, 5); // This represents the Infinite
+    }
+    
+    public static final class LimelightConstants {
+        // Limelight Constants
+        public static final double kHorizAngleCorrection = 2.5;   // + is left
+        public static final double LL_MOUNT_HEIGHT = 0.875;  /* limelight 固定height */  //TODO
+        public static final double LL_MOUNT_ANGLE = 30; /* limelight固定角度 */   //TODO
+        public static final double kTrackTolerance = 1.146; // Allowable Limelight angle(degree) error in radians //TODO
+}
+    
+    public static final class GoalConstants {
+        public static final Translation2d kGoalLocation = new Translation2d(8.23, 4.115);
+        public static final Translation2d kWrongBallGoal = new Translation2d(5.50, 4.115);
+        public static final Translation2d kHangerLocation = new Translation2d(2.00, 6.00);
+
+        public static final double LL_UPPER_HUB_HEIGHT = 2.64;
+        public static final double CARGO_DIAMETER = 0.64;
+        public static final double UPPER_HUB_DIAMETER = 1.22;
     }
     public static final class DriveConstants {
         public static final double kMaxAcceleration = 3.0;
@@ -37,7 +159,7 @@ public final class Constants
         public static final double kOuterDeadband = 0.98; // This value should be lower than the analog stick X or Y reading
                                                           // when aimed at a 45deg angle (Such that X and Y are are
                                                           // maximized simultaneously)
-        public static final double kTranslationSlew = 1.45;
+        public static final double kTranslationSlew = 3.5;
         public static final double kRotationSlew = 3.00;
     }
     
@@ -113,7 +235,7 @@ public final class Constants
     
         public static double kPeriod = 20;//The unit is 20_ms
     
-        public static double kMaxSpeed = 4;//The unit is meters per second 每个轮子的可以达到的最大转速，单位是m/s
+        public static double kMaxSpeed = 8;//The unit is meters per second 每个轮子的可以达到的最大转速，单位是m/s
     
         public static final PIDController holonomicControllerPID = new PIDController(1, 0, 0);
         public static final ProfiledPIDController holonomicControllerPIDTheta = new ProfiledPIDController(1, 0, 0, new TrapezoidProfile.Constraints(0, 0));
@@ -135,5 +257,41 @@ public final class Constants
         public static final int SWERVE_DRIVE_MOTOR_CURRENT_LIMIT = 15;
         public static final int SWERVE_DRIVE_VOLTAGE_LIMIT = 12;
     }
+    public final class HopperConstants
+    {
+        public static final int UpFrontMotorPort=13;
+        public static final int UpBackMotorPort=14;
+        public static final int BottomMotorPort=15;
+        public static final int  UpBallSensorChannel=1;
+        public static final int  DownBallSensor=2;
 
+        public static final double HopperOutput=0.3;
+    }
+    public static final class AutoConstants {
+        public static final double kMaxSpeedMetersPerSecond = 1;
+        public static final double kMaxAccelerationMetersPerSecondSquared = 1;
+        public static final double kMaxAngularSpeedRadiansPerSecond = 16;
+        public static final double kMaxAngularSpeedRadiansPerSecondSquared = 16;
+	
+		public static final double kSlowMaxSpeedMetersPerSecond = 2.0;
+		public static final double kSlowMaxAccelerationMetersPerSecondSquared = 3;
+
+		public static final double kFastMaxSpeedMetersPerSecond = 4;
+		public static final double kFastMaxAccelerationMetersPerSecondSquared = 3;
+		
+        public static final double kPXController = 3;
+        public static final double kPYController = 3;
+        public static final double kPThetaController = 5;
+        public static final double kIThetaController = 0;
+        public static final double kDThetaController = 0;
+    
+        // Constraint for the motion profilied robot angle controller
+        public static final TrapezoidProfile.Constraints kThetaControllerConstraints =
+            new TrapezoidProfile.Constraints(
+                        Math.PI, Math.PI);
+                
+        public static final TrapezoidProfile.Constraints kThetaAimControllerConstraints =
+            new TrapezoidProfile.Constraints(
+                        3 * Math.PI, 3 * Math.PI);
+    }
 }
