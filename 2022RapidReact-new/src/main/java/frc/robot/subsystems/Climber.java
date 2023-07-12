@@ -4,12 +4,14 @@
 
 package frc.robot.subsystems;
 
+import com.ctre.phoenix.motorcontrol.can.WPI_TalonFX;
+
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
-public class ExampleSubsystem extends SubsystemBase {
+public class Climber extends SubsystemBase {
   /** Creates a new ExampleSubsystem. */
-  public ExampleSubsystem() {}
-
+  public Climber() {}
+  WPI_TalonFX m_ClimberMotor;
   @Override
   public void periodic() {
     // This method will be called once per scheduler run
