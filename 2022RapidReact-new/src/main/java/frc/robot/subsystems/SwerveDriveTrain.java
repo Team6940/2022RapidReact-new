@@ -5,6 +5,7 @@
 package frc.robot.subsystems;
 
 import com.ctre.phoenix.sensors.PigeonIMU;
+import com.ctre.phoenix.sensors.WPI_Pigeon2;
 import com.ctre.phoenix.sensors.WPI_PigeonIMU;
 
 import edu.wpi.first.wpilibj.SPI;
@@ -34,7 +35,7 @@ public class SwerveDriveTrain extends SubsystemBase {
   private SwerveModule swerve_modules_[] = new SwerveModule[4];
 
   //public PigeonIMU gyro;
-  public WPI_PigeonIMU gyro;
+  public WPI_Pigeon2 gyro;
  // public PixyCamSPI mPixy;
   //byte PixySignature;
 
@@ -84,7 +85,7 @@ public class SwerveDriveTrain extends SubsystemBase {
   public SwerveDriveTrain() {
 
     addShuffleboardDebug();
-    gyro = new WPI_PigeonIMU(SwerveConstants.PigeonIMUPort);
+    gyro = new WPI_Pigeon2(SwerveConstants.PigeonIMUPort);
 
     // The coordinate system may be wrong 
     swerve_modules_[0] = new SwerveModule(1, 2, false,  false, 2500, true, true);//front left
@@ -306,19 +307,24 @@ public class SwerveDriveTrain extends SubsystemBase {
   }
 
   public void zeroGyro(){
-    gyro.setFusedHeading(0);
-  }
+    gyro.setYaw(0);
 
+  }
+  public void CollaborateGyro()
+  {
+    gyro.zeroGyroBiasNow();
+  }
   public void zeroGyro(double reset){
-    gyro.setFusedHeading(reset);
+    gyro.setYaw(reset);
   }
 
   public double getRoll() {
     return gyro.getRoll();
+    
   }
 
   public double GetYaw() {
-    return gyro.getFusedHeading();
+    return gyro.getYaw();
   }
   
   public FieldRelativeSpeed getFieldRelativeSpeed() {
@@ -361,7 +367,9 @@ public class SwerveDriveTrain extends SubsystemBase {
       SmartDashboard.putNumber("Debug/Drive/y meters", getPose().getY());
       SmartDashboard.putNumber("Debug/Drive/rot radians", getPose().getRotation().getDegrees());
       SmartDashboard.putBoolean("Debug/Drive/isOpenloop", isOpenLoop);
+      
     }
+
   }
 
   private boolean IsOpenLoopMode(){

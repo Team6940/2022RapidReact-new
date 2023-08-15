@@ -23,31 +23,31 @@ import java.awt.geom.Point2D;
 public final class Constants 
 {
     public static final class IntakeConstants {
-        public static final int IntakerPort = 13;
+        public static final int IntakerPort = 11;
         public static final int IntakerSolenoidPort = 0;
         public static final boolean vSwitchIntake = false;
         public static final double INTAKE_OPEN_TIME = 0.0;
-        public static final double INTAKE_SPEED = 1;
+        public static final double IntakeOutput = 1;
         public static final double INTAKE_EJECTION_SPEED = -0.5;
     }
     public static final class HoodConstants {
         
         public static final double kMinAngle = 0.5;
         public static final double kMaxAngle = 38;
-        public static final double kHoodTolerance = 1.0;//degrees
+        public static final double kHoodTolerance = 1.5;//degrees
         
-        public static int HoodMotorPort = 14; //14
-        public static double HOOD_GEAR_RATIO = 12.7 ;  
+        public static int HoodMotorPort = 20; //14
+        public static double HOOD_GEAR_RATIO = (432/35)*(54/24)*(10/1) ;  
         
         public static final double HOOD_HOME_ANGLE = 0; 
-        public static final double HOOD_MAX_ANGLE = 20; 
+        public static final double HOOD_MAX_ANGLE = 50; 
         public static final double HOOD_MIN_ANGLE = 0;
         
         public static final double HOOD_EJECT_ANGLE = 10;  //TODO
     }
     public static final class ShooterConstants {
         
-        public static final int BlockerMotorPort=12;
+        public static final int BlockerMotorPort=9;
         public static final double BlockerOutput=0.5;
         public static final double BlockerFeedTime=2;
 
@@ -57,33 +57,33 @@ public final class Constants
         
         private static final Point2D[] kHoodPoints = new Point2D.Double[] {
             // (distance, ty-angle)
-            new Point2D.Double(2.490/*90*/, 0.00), //
-            new Point2D.Double(2.976/*105*/, 0.00), //
-            new Point2D.Double(3.494/*120*/, 0.00), //
-            new Point2D.Double(3.836/*135*/, 0.00), //
-            new Point2D.Double(4.210/*150*/, 3.00), //
-            new Point2D.Double(4.755/*165*/, 5.00), //
-            new Point2D.Double(5.228/*180*/, 7.00), //
-            new Point2D.Double(5.677/*195*/, 9.00), //
-            new Point2D.Double(6.450/*210*/, 10.0), //
-            new Point2D.Double(7.380/*225*/, 12.0),//
-            new Point2D.Double(8.068/*270*/, 14.0),
+            new Point2D.Double(2.48/*90*/,5), //
+            new Point2D.Double(3/*105*/, 9), //
+            new Point2D.Double(3.5/*120*/, 12.00), //
+            new Point2D.Double(4/*135*/, 14.00), //
+            new Point2D.Double(4.5/*150*/, 16.00), //
+            new Point2D.Double(5/*165*/, 19.00), //
+            new Point2D.Double(5.5/*180*/, 22.00), //
+            new Point2D.Double(6/*195*/, 24.00), //
+            new Point2D.Double(6.45/*210*/, 30.0), //
+            new Point2D.Double(7.06/*225*/, 35),//
+            new Point2D.Double(7.53/*270*/, 40),
         };
         public static final LinearInterpolationTable kHoodTable = new LinearInterpolationTable(kHoodPoints);
     
         private static final Point2D[] kRPMPoints = new Point2D.Double[] {
             // (distance, shooterSpeedRPM)
-            new Point2D.Double(2.490/*90*/, 2200), //
-            new Point2D.Double(2.976/*135*/, 2240), //
-            new Point2D.Double(3.494/*150*/, 2290), //
-            new Point2D.Double(3.836/*165*/, 2350), //
-            new Point2D.Double(4.210/*180*/, 2370), //
-            new Point2D.Double(4.755/*195*/, 2440), //
-            new Point2D.Double(5.228/*210*/, 2530), //
-            new Point2D.Double(5.677/*225*/, 2660), //
-            new Point2D.Double(6.450/*240*/, 2710),
-            new Point2D.Double(7.380/*270*/, 2810),
-            new Point2D.Double(8.068/*270*/, 2900),
+            new Point2D.Double(2.48/*90*/, 2300), //
+            new Point2D.Double(3/*135*/, 2400), //
+            new Point2D.Double(3.5/*150*/, 2450), //
+            new Point2D.Double(4/*165*/, 2500), //
+            new Point2D.Double(4.5/*180*/, 2570), //
+            new Point2D.Double(5/*195*/, 2650), //
+            new Point2D.Double(5.5/*210*/, 2680), //
+            new Point2D.Double(6/*225*/, 2720), //
+            new Point2D.Double(6.45/*240*/, 2740),
+            new Point2D.Double(7.06/*270*/, 2780),
+            new Point2D.Double(7.53/*270*/, 2840),
         };        
         public static final LinearInterpolationTable kRPMTable = new LinearInterpolationTable(kRPMPoints);
 
@@ -98,8 +98,8 @@ public final class Constants
 
         public static final double SHOOTER_LAUNCH_ANGLE = 90-Math.toDegrees(0.35); //SHOOTER固定角度  //TODO
         public static final double SHOOTER_MOUNT_HEIGHT = 0.83;  //SHOOTER高度  //TODO
-        public static final int SHOOT_L_MASTER_ID = 11;  //TODO
-        public static final int SHOOT_R_MASTER_ID = 12;  //TODO
+        public static final int SHOOT_L_MASTER_ID = 10;  //TODO
+        public static final int SHOOT_R_MASTER_ID = 18;  //TODO
         public static final double SHOOTER_KS = 0 / 12;
         public static final double SHOOTER_KV = 0 / 12;
         public static final double SHOOTER_KA = 0 / 12;
@@ -109,7 +109,7 @@ public final class Constants
         public static double kFlyWheelEncoderReductionRatio =  1 ;  //TODO
         public static double kFlyWheelWheelDiameter = 0.108;//The unit is meter //TODO
         public static double kFlyWheelWheelDefaultSpeed = 3.0;  //meters/s //TODO
-        public static double kShooterTolerance = 30; //RPM //TODO
+        public static double kShooterTolerance = 80; //RPM //TODO
         public static double kPreventShooterOscilliationRPM = 20;
         public static double kFlyWheelCircumference = Math.PI * kFlyWheelWheelDiameter;
         public static double kShootOneBallTime = 1.5; //TODO every one shooting ball time(seconds)
@@ -131,7 +131,7 @@ public final class Constants
     public static final class LimelightConstants {
         // Limelight Constants
         public static final double kHorizAngleCorrection = 2.5;   // + is left
-        public static final double LL_MOUNT_HEIGHT = 0.875;  /* limelight 固定height */  //TODO
+        public static final double LL_MOUNT_HEIGHT = 0.95;  /* limelight 固定height */  //TODO
         public static final double LL_MOUNT_ANGLE = 30; /* limelight固定角度 */   //TODO
         public static final double kTrackTolerance = 1.146; // Allowable Limelight angle(degree) error in radians //TODO
 }
@@ -147,7 +147,7 @@ public final class Constants
     }
     public static final class DriveConstants {
         public static final double kMaxAcceleration = 3.0;
-        public static final double kMaxAngularSpeed = Math.PI; // Maximum Angular Speed desired. NOTE: Robot can exceed this
+        public static final double kMaxAngularSpeed = Math.PI*1.5; // Maximum Angular Speed desired. NOTE: Robot can exceed this
                                                                // but spinning fast is not particularly useful or driver
                                                                // friendly
         public static final double kMaxAngularAccel = Math.PI; // Maximum Angular Speed desired. NOTE: Robot can exceed this
@@ -259,29 +259,29 @@ public final class Constants
     }
     public final class HopperConstants
     {
-        public static final int UpFrontMotorPort=13;
-        public static final int UpBackMotorPort=14;
-        public static final int BottomMotorPort=15;
-        public static final int  UpBallSensorChannel=1;
-        public static final int  DownBallSensor=2;
+        public static final int UpFrontMotorPort=12;
+        public static final int UpBackMotorPort=15;
+        public static final int BottomMotorPort=19;
+        public static final int  UpBallSensorChannel=4;
+        public static final int  DownBallSensor=9;
 
-        public static final double HopperOutput=0.3;
+        public static final double HopperOutput=0.7;
     }
     public static final class AutoConstants {
-        public static final double kMaxSpeedMetersPerSecond = 1;
-        public static final double kMaxAccelerationMetersPerSecondSquared = 1;
+        public static final double kMaxSpeedMetersPerSecond = 6;
+        public static final double kMaxAccelerationMetersPerSecondSquared = 3;
         public static final double kMaxAngularSpeedRadiansPerSecond = 16;
         public static final double kMaxAngularSpeedRadiansPerSecondSquared = 16;
 	
 		public static final double kSlowMaxSpeedMetersPerSecond = 2.0;
 		public static final double kSlowMaxAccelerationMetersPerSecondSquared = 3;
 
-		public static final double kFastMaxSpeedMetersPerSecond = 4;
-		public static final double kFastMaxAccelerationMetersPerSecondSquared = 3;
+		public static final double kFastMaxSpeedMetersPerSecond = 2;
+		public static final double kFastMaxAccelerationMetersPerSecondSquared = 2;
 		
         public static final double kPXController = 3;
         public static final double kPYController = 3;
-        public static final double kPThetaController = 5;
+        public static final double kPThetaController = 6;
         public static final double kIThetaController = 0;
         public static final double kDThetaController = 0;
     
@@ -293,5 +293,11 @@ public final class Constants
         public static final TrapezoidProfile.Constraints kThetaAimControllerConstraints =
             new TrapezoidProfile.Constraints(
                         3 * Math.PI, 3 * Math.PI);
+    }
+    public static class ClimberConstants
+    {
+        public static final int ClimberOutUnits=870000;
+        public static final int ClimberBackUnits=400000;//TODO
+        public static final int ClimberPort=16;
     }
 }

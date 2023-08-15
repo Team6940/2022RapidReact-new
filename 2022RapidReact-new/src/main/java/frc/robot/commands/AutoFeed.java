@@ -31,13 +31,19 @@ public class AutoFeed extends CommandBase {
   // Called every time the scheduler runs while the command is scheduled.
   @Override
   public void execute() {
-    if(RobotContainer.m_Hopper.IsBallOnBottom()&&RobotContainer.m_Hopper.IsBallOnTop())
+    if(RobotContainer.m_driverController.getBButton()||RobotContainer.m_testController.getBButton())
+{
+  RobotContainer.m_Hopper.SetBottomOutput(HopperConstants.HopperOutput);
+      RobotContainer.m_Hopper.SetUpFrontOutput(HopperConstants.HopperOutput);
+      RobotContainer.m_Hopper.SetUpBackOutput(HopperConstants.HopperOutput);
+}
+    else if(!RobotContainer.m_Hopper.NoBallOnBottom()&&!RobotContainer.m_Hopper.NoBallOnTop())
     {
       RobotContainer.m_Hopper.SetBottomOutput(0);
       RobotContainer.m_Hopper.SetUpFrontOutput(0);
       RobotContainer.m_Hopper.SetUpBackOutput(0);
     }
-    else if(!RobotContainer.m_Hopper.IsBallOnBottom()&&RobotContainer.m_Hopper.IsBallOnTop())
+    else if(RobotContainer.m_Hopper.NoBallOnBottom()&&!RobotContainer.m_Hopper.NoBallOnTop())
       {
         RobotContainer.m_Hopper.SetBottomOutput(HopperConstants.HopperOutput);
         RobotContainer.m_Hopper.SetUpBackOutput(0);
@@ -45,7 +51,7 @@ public class AutoFeed extends CommandBase {
       
       
       }
-    else if(RobotContainer.m_Hopper.IsBallOnBottom()&&!RobotContainer.m_Hopper.IsBallOnTop())
+    else if(!RobotContainer.m_Hopper.NoBallOnBottom()&&RobotContainer.m_Hopper.NoBallOnTop())
     {
       RobotContainer.m_Hopper.SetBottomOutput(HopperConstants.HopperOutput);
       RobotContainer.m_Hopper.SetUpFrontOutput(HopperConstants.HopperOutput);

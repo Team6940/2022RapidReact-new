@@ -14,6 +14,7 @@ import edu.wpi.first.wpilibj.Solenoid;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.IntakeConstants;
+import frc.robot.lib.team1678.math.Conversions;
 
 public class Intake extends SubsystemBase {
   /** Creates a new ExampleSubsystem. */
@@ -30,12 +31,12 @@ public class Intake extends SubsystemBase {
   public Intake() {
     ConfigIntakeMotor();
   }
-  void SetIntakeState(double MotorPct,boolean SolenoidState)
+  public void SetIntakeState(double MotorPct,boolean SolenoidState)
   {
     
   if(!m_Enabled) return;
-    m_IntakeSolenoid.set(true);
-    m_IntakeMotor.set(ControlMode.Velocity, MotorPct);
+    m_IntakeSolenoid.set(SolenoidState);
+    m_IntakeMotor.set(ControlMode.PercentOutput, MotorPct);
   }
   double GetMotorOutput()
   {
@@ -49,8 +50,13 @@ public class Intake extends SubsystemBase {
   { 
     m_IntakeMotor = new WPI_TalonFX(IntakeConstants.IntakerPort); //TODO 设定intake电机
     m_IntakeSolenoid = new Solenoid(PneumaticsModuleType.CTREPCM, IntakeConstants.IntakerSolenoidPort); //TODO 设定气动杆
-    m_IntakeMotor.setInverted(false);
+    m_IntakeMotor.setInverted(true);
     m_IntakeMotor.setNeutralMode(NeutralMode.Brake);
+    m_IntakeMotor.config_kP(0, 0.4);
+    m_IntakeMotor.config_kI(0, 0.);
+    m_IntakeMotor.config_kD(0, 0.2);
+    m_IntakeMotor.config_kF(0, 0.);
+    
   }
   void DashboardOutput()
   {

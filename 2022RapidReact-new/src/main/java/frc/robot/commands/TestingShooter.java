@@ -4,7 +4,9 @@
 
 package frc.robot.commands;
 
+import frc.robot.Robot;
 import frc.robot.RobotContainer;
+import frc.robot.Constants.HopperConstants;
 import frc.robot.lib.team3476.net.editing.LiveEditableValue;
 import frc.robot.subsystems.Climber;
 import frc.robot.subsystems.Shooter;
@@ -16,9 +18,12 @@ public class TestingShooter extends CommandBase {
 
   public TestingShooter() {
     addRequirements(RobotContainer.m_Shooter);
+    addRequirements(RobotContainer.m_Hood);
   }
   LiveEditableValue<Double> ShooterRPMTable = new LiveEditableValue<>(0.,
   SmartDashboard.getEntry("ShooterRPM"));
+  LiveEditableValue<Double> HoodAngleTable = new LiveEditableValue<>(0.,
+  SmartDashboard.getEntry("HoodAngle"));
   // Called when the command is initially scheduled.
   @Override
   public void initialize() 
@@ -31,9 +36,24 @@ public class TestingShooter extends CommandBase {
   public void execute() {
     if(RobotContainer.m_driverController.getBButtonPressed())
       RobotContainer.m_Shooter.SetSpeed(ShooterRPMTable.get());
-    if(RobotContainer.m_driverController.getBButtonReleased());
-      RobotContainer.m_Shooter.SetSpeed(0);
-  }
+    if(RobotContainer.m_driverController.getYButtonPressed())
+    {
+      RobotContainer.m_Hood.SetHoodAngle(HoodAngleTable.get());
+    }
+    // if(RobotContainer.m_driverController.getBButtonReleased());
+    //   RobotContainer.m_Shooter.SetSpeed(0);
+    if(RobotContainer.m_driverController.getRightBumper())
+    {
+      RobotContainer.m_Shooter.SetBlockerOutPut(1.);
+      // RobotContainer.m_Hopper.SetUpBackOutput(1.);
+    }
+    else
+    {
+      RobotContainer.m_Shooter.SetBlockerOutPut(0.);
+      // RobotContainer.m_Hopper.SetUpBackOutput(0.);
+
+    }
+      }
 
   // Called once the command ends or is interrupted.
   @Override

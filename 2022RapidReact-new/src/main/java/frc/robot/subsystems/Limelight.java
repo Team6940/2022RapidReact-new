@@ -170,6 +170,7 @@ private static LinearInterpolationTable distTable = new LinearInterpolationTable
   @Override
   public void periodic() {
     // This method will be called once per scheduler run
+    SmartDashboard.putNumber("LimelightDistance", getRobotToTargetDistance());
   }
 
   public void reloadLimeLightSimu() {
@@ -189,7 +190,7 @@ private static LinearInterpolationTable distTable = new LinearInterpolationTable
       final double tyAdj = (Get_ty() -0.0084125*tx*tx)/(0.000267*tx*tx+1.0); //New geometric correction function
       final double distance = distTable.getOutput(tyAdj);
       SmartDashboard.putNumber("Limelight ty", Get_ty());
-      // SmartDashboard.putNumber("LimelightDistance", distance);
+      SmartDashboard.putNumber("LimelightDistance", distance);
       return distance;
   }
 }

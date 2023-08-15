@@ -32,7 +32,7 @@ public class Hood extends SubsystemBase {
     //hood电机参数
     m_Hoodmotor = new WPI_TalonFX(HoodConstants.HoodMotorPort);
     
-    m_Hoodmotor.setInverted(false);
+    m_Hoodmotor.setInverted(true);
     m_Hoodmotor.setSensorPhase(false);
     m_Hoodmotor.setNeutralMode(NeutralMode.Brake);//???
     //设定pid
@@ -42,8 +42,9 @@ public class Hood extends SubsystemBase {
     m_Hoodmotor.config_kD(0, 0.0, 10);
     m_Hoodmotor.config_kF(0, 0.00, 10);
     m_Hoodmotor.config_IntegralZone(0, 0, 10);
-    m_Hoodmotor.configMotionCruiseVelocity(600, 10);//???
-    m_Hoodmotor.configMotionAcceleration(1200, 10);//???
+    m_Hoodmotor.configMotionCruiseVelocity(20000, 10);//???
+    m_Hoodmotor.configMotionAcceleration(20000, 10);//???
+    
     // mHoodmotor.configMotionSCurveStrength(6);
 
     m_Hoodmotor.configForwardSoftLimitThreshold(Conversions.degreesToTalon(HoodConstants.HOOD_MAX_ANGLE, HoodConstants.HOOD_GEAR_RATIO) , 10); //TODO
@@ -67,8 +68,12 @@ public class Hood extends SubsystemBase {
 public void SetHoodAngle(double _Angle)
 {
   if(!m_Enabled) return;
+  if(_Angle>40)
+    _Angle=40.;
   m_TargetHoodAngle=_Angle;
-  m_Hoodmotor.set(ControlMode.MotionMagic, Conversions.degreesToTalon(_Angle, HoodConstants.HOOD_GEAR_RATIO));
+
+  m_Hoodmotor.set(ControlMode.MotionMagic, Conversions.degreesToTalon(_Angle, HoodConstants.HOOD_GEAR_RATIO)/2
+  );
 }
 public double GetHoodAngle()
 {
@@ -77,6 +82,10 @@ public double GetHoodAngle()
 public double GetTargetHoodAngle()
 {
   return m_TargetHoodAngle;
+}
+public boolean IsHoodAtAngle()
+{
+  return GetTargetHoodAngle()-GetHoodAngle()<=HoodConstants.kHoodTolerance;
 }
 private void DashboardOutput()
 {

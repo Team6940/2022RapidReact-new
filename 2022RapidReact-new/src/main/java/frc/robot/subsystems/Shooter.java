@@ -27,7 +27,7 @@ public class Shooter extends SubsystemBase {
   public Shooter() {
     ShooterConfig();
   }
-  Shooter GetInstance()
+  public static Shooter GetInstance()
   {
     return m_Instance==null? m_Instance=new Shooter():m_Instance;
   }
@@ -36,15 +36,15 @@ public class Shooter extends SubsystemBase {
     //shooter电机参数设定
     m_Blocker = new WPI_TalonFX(ShooterConstants.BlockerMotorPort);
     m_Blocker.setNeutralMode(NeutralMode.Brake);
-    
+    m_Blocker.setInverted(true);
     m_ShooterLeft = new WPI_TalonFX(ShooterConstants.SHOOT_L_MASTER_ID);//设定shooter电机
     m_ShooterLeft.setInverted(true);//TODO 电机是否反转
     //mShooterLeft.configAllSettings(lMasterConfig);//将pid参数注入到电机中
     m_ShooterLeft.setNeutralMode(NeutralMode.Coast);
-    m_ShooterLeft.config_kP(0, 0.1);
+    m_ShooterLeft.config_kP(0, 0.3);
     m_ShooterLeft.config_kI(0, 0);
-    m_ShooterLeft.config_kD(0, 0);
-    m_ShooterLeft.config_kF(0, 0.063);
+    m_ShooterLeft.config_kD(0, 0.13);
+    m_ShooterLeft.config_kF(0, 0.07);
     m_ShooterLeft.configPeakOutputForward(1);
     m_ShooterLeft.configPeakOutputReverse(-1);
     m_ShooterLeft.configSelectedFeedbackSensor(FeedbackDevice.IntegratedSensor);
@@ -58,10 +58,10 @@ public class Shooter extends SubsystemBase {
     m_ShooterRght.follow(m_ShooterLeft);
     //mShooterRght.configAllSettings(lMasterConfig);
     m_ShooterRght.setNeutralMode(NeutralMode.Coast);
-    m_ShooterRght.config_kP(0, 0.1);//0.0000005
+    m_ShooterRght.config_kP(0, 0.3);//0.0000005
     m_ShooterRght.config_kI(0, 0);
-    m_ShooterRght.config_kD(0, 0);
-    m_ShooterRght.config_kF(0, 0.063);//0.05
+    m_ShooterRght.config_kD(0, 0.13);
+    m_ShooterRght.config_kF(0, 0.07);//0.05
     m_ShooterRght.configPeakOutputForward(1.0);
     m_ShooterRght.configPeakOutputReverse(-1.0);
     m_ShooterRght.configSelectedFeedbackSensor(FeedbackDevice.IntegratedSensor);
@@ -79,7 +79,11 @@ public class Shooter extends SubsystemBase {
     
   if(!m_Enabled) return;
     m_TargetSpeed=_RPM;
+    if(_RPM==0)
+    m_ShooterLeft.stopMotor();
+    else
     m_ShooterLeft.set(ControlMode.Velocity, Conversions.RPMToFalcon(_RPM,ShooterConstants.kFlyWheelEncoderReductionRatio));
+    
   }
   public Boolean IsSpeedReached()
   {
@@ -95,11 +99,11 @@ public class Shooter extends SubsystemBase {
   }
   public double GetTargetSpeed()
   {
-    return Conversions.falconToRPM(m_TargetSpeed, ShooterConstants.kFlyWheelEncoderReductionRatio);
+    return m_TargetSpeed;
   }
   public boolean IsTargetSpeedReached()
   {
-    return (Math.abs(GetSpeed()-GetTargetSpeed())<=30);
+    return (Math.abs(GetSpeed()-GetTargetSpeed())<=ShooterConstants.kShooterTolerance);
   }
   private void  DashboardOutput()
   {

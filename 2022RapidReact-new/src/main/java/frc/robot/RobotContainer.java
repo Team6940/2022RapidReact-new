@@ -4,6 +4,8 @@
 
 package frc.robot;
 
+import javax.crypto.Cipher;
+
 import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.XboxController;
@@ -26,15 +28,15 @@ import edu.wpi.first.wpilibj2.command.Command;
 public class RobotContainer {
   // The robot's subsystems and commands are defined here...
   private final Climber m_exampleSubsystem = new Climber();
-  public static Shooter m_Shooter=new Shooter();
-  public static XboxController m_driverController= new XboxController(1);
+  public static Shooter m_Shooter=Shooter.GetInstance();
+  public static XboxController m_driverController= new XboxController(0);
   public static SwerveDriveTrain m_swerve = SwerveDriveTrain.getInstance();
   public static Hopper m_Hopper =  Hopper.GetInstance();
   public static Intake m_Intake= Intake.GetInstance();
   public static Limelight m_Limelight=Limelight.GetInstance();
   public static Hood m_Hood=Hood.GetInstance();
-
-
+  public static Climber m_Climber=Climber.GetInstance();
+  public static XboxController m_testController= new XboxController(1);
 
   /** The container for the robot. Contains subsystems, OI devices, and commands. */
   public RobotContainer() {
@@ -48,6 +50,8 @@ public class RobotContainer {
    * edu.wpi.first.wpilibj.Joystick} or {@link XboxController}), and then passing it to a {@link
    * edu.wpi.first.wpilibj2.command.button.JoystickButton}.
    */
-  private void configureButtonBindings() {}
+  private void configureButtonBindings() {
+    
+  }
 
 }

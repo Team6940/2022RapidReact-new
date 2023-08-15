@@ -8,6 +8,7 @@ import com.ctre.phoenix.motorcontrol.ControlMode;
 import com.ctre.phoenix.motorcontrol.FeedbackDevice;
 import com.ctre.phoenix.motorcontrol.NeutralMode;
 import com.ctre.phoenix.motorcontrol.can.WPI_TalonFX;
+import com.ctre.phoenix.motorcontrol.can.WPI_TalonSRX;
 
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -25,7 +26,7 @@ public class Hopper extends SubsystemBase {
   }
   WPI_TalonFX m_UpFrontMotor;
   WPI_TalonFX m_UpBackMotor;
-  WPI_TalonFX m_BottomMotor;
+  WPI_TalonSRX m_BottomMotor;
 
   DigitalInput m_UpBallSensor;
   DigitalInput m_DownBallSensor;
@@ -36,7 +37,7 @@ public class Hopper extends SubsystemBase {
   {
     m_UpFrontMotor=new WPI_TalonFX(HopperConstants.UpFrontMotorPort);
     m_UpBackMotor=new WPI_TalonFX(HopperConstants.UpBackMotorPort);
-    m_BottomMotor=new WPI_TalonFX(HopperConstants.BottomMotorPort);
+    m_BottomMotor=new WPI_TalonSRX(HopperConstants.BottomMotorPort);
     m_UpBallSensor=new DigitalInput(HopperConstants.UpBallSensorChannel);
     m_DownBallSensor=new DigitalInput(HopperConstants.DownBallSensor);
 
@@ -44,10 +45,14 @@ public class Hopper extends SubsystemBase {
     m_UpBackMotor.setNeutralMode(NeutralMode.Brake);
     m_BottomMotor.setNeutralMode(NeutralMode.Brake);
     
+    m_UpFrontMotor.setInverted(true);
+    m_UpBackMotor.setInverted(true);
+    m_BottomMotor.setInverted(true);
+
     m_UpFrontMotor.configSelectedFeedbackSensor(FeedbackDevice.IntegratedSensor);
     m_UpBackMotor.configSelectedFeedbackSensor(FeedbackDevice.IntegratedSensor);
-    m_BottomMotor.configSelectedFeedbackSensor(FeedbackDevice.IntegratedSensor);
-  
+    m_BottomMotor.configSelectedFeedbackSensor(FeedbackDevice.CTRE_MagEncoder_Relative);
+    
   }
   public void SetUpFrontOutput(double _UpFrontOutput)
   {
@@ -61,11 +66,11 @@ public class Hopper extends SubsystemBase {
   {
     m_BottomMotor.set(ControlMode.PercentOutput,_BottomOutput);
   }
-  public boolean IsBallOnTop()
+  public boolean NoBallOnTop()
   {
     return m_UpBallSensor.get();
   }
-  public boolean IsBallOnBottom()
+  public boolean NoBallOnBottom()
   {
     return m_DownBallSensor.get();
   }

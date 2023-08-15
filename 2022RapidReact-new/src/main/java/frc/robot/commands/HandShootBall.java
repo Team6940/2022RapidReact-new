@@ -19,7 +19,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.CommandBase;
 
 /** An example command that uses an example subsystem. */
-public class ShootBall extends CommandBase {
+public class HandShootBall extends CommandBase {
   
   public enum ShooterState {
     Aiming,Accelerating,Shooting
@@ -29,12 +29,11 @@ public class ShootBall extends CommandBase {
   double m_ShootRPM;
   double m_ShootHood;
   boolean m_IsAuto;
-  public ShootBall(boolean _IsAuto) {
+  public HandShootBall() {
     addRequirements(RobotContainer.m_swerve);
     addRequirements(RobotContainer.m_Hood);
     
   addRequirements(RobotContainer.m_Shooter);
-m_IsAuto=_IsAuto;
   }
  
 
@@ -42,7 +41,12 @@ m_IsAuto=_IsAuto;
   @Override
   public void initialize() {
 
-    m_State=ShooterState.Aiming;
+    m_State=ShooterState.Accelerating;
+    m_TargetDistance=3;
+    m_ShootRPM=ShooterConstants.kRPMTable.getOutput(m_TargetDistance);
+          m_ShootHood=ShooterConstants.kHoodTable.getOutput(m_TargetDistance);
+          RobotContainer.m_Limelight.setLightMode(1);
+          m_State=ShooterState.Accelerating;
   }
 
   // Called every time the scheduler runs while the command is scheduled.
@@ -79,7 +83,7 @@ m_IsAuto=_IsAuto;
         {
                 
         RobotContainer.m_swerve.Drive(new Translation2d(), 0, false, false);
-          m_TargetDistance=RobotContainer.m_Limelight.getRobotToTargetDistance()-0.3;
+          m_TargetDistance=RobotContainer.m_Limelight.getRobotToTargetDistance();
           m_ShootRPM=ShooterConstants.kRPMTable.getOutput(m_TargetDistance);
           m_ShootHood=ShooterConstants.kHoodTable.getOutput(m_TargetDistance);
           RobotContainer.m_Limelight.setLightMode(1);
@@ -125,6 +129,6 @@ m_IsAuto=_IsAuto;
   // Returns true when the command should end.
   @Override
   public boolean isFinished() {
-    return !RobotContainer.m_driverController.getRightBumper()&&!m_IsAuto;
+    return !RobotContainer.m_driverController.getYButton();
   }
 }

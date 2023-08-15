@@ -4,11 +4,23 @@
 
 package frc.robot;
 
+import edu.wpi.first.cameraserver.CameraServer;
 import edu.wpi.first.wpilibj.TimedRobot;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.SwerveControllerCommand;
+import edu.wpi.first.wpilibj2.command.WaitCommand;
+import frc.robot.Auto.FiveBallAutoCommand;
+import frc.robot.Auto.OneBallAutoCommand;
+import frc.robot.Auto.TwoBallAutoCommand;
+import frc.robot.Constants.IntakeConstants;
+import frc.robot.commands.AutoFeed;
+import frc.robot.commands.HandShootBall;
+import frc.robot.commands.ShootBall;
+import frc.robot.commands.TestingShooter;
 import frc.robot.commands.SwerveControl.SwerveControll;
+import frc.robot.subsystems.Shooter;
 
 /**
  * The VM is configured to automatically run this class, and to call the functions corresponding to
@@ -20,7 +32,7 @@ public class Robot extends TimedRobot {
   private Command m_autonomousCommand;
 
   private RobotContainer m_robotContainer;
-  
+  int m_BallAuto=1;
 
   /**
    * This function is run when the robot is first started up and should be used for any
@@ -29,6 +41,9 @@ public class Robot extends TimedRobot {
   @Override
   public void robotInit() {
     // Instantiate our RobotContainer.  This will perform all our button bindings, and put our
+    CameraServer.startAutomaticCapture();
+    RobotContainer.m_swerve.setDefaultCommand(new SwerveControll());
+    RobotContainer.m_Hopper.setDefaultCommand(new AutoFeed());
     // autonomous chooser on the dashboard.
   }
 
@@ -53,15 +68,34 @@ public class Robot extends TimedRobot {
   public void disabledInit() {}
 
   @Override
-  public void disabledPeriodic() {}
+  public void disabledPeriodic() {
+    if(RobotContainer.m_driverController.getXButtonPressed())
+    {
+      m_BallAuto+=1;
+
+    }
+    if(RobotContainer.m_driverController.getYButtonPressed())
+    {
+      m_BallAuto-=1;
+    }
+    SmartDashboard.putNumber("Auto", m_BallAuto);
+  }
 
   /** This autonomous runs the autonomous command selected by your {@link RobotContainer} class. */
   @Override
   public void autonomousInit() {
     // schedule the autonomous command (example)
-    if (m_autonomousCommand != null) {
-      m_autonomousCommand.schedule();
-    }
+    // if (m_autonomousCommand != null) {
+    //   m_autonomousCommand.schedule();
+    // }
+      
+    RobotContainer.m_swerve.ZeroHeading();
+    if(m_BallAuto==5)
+      new FiveBallAutoCommand().withTimeout(15.).schedule();
+    if(m_BallAuto==2)
+      new TwoBallAutoCommand().raceWith(new WaitCommand(15)).schedule();
+    if(m_BallAuto==1)
+      new OneBallAutoCommand().raceWith(new WaitCommand(15)).schedule();
   }
 
   /** This function is called periodically during autonomous. */
@@ -70,15 +104,14 @@ public class Robot extends TimedRobot {
 
   @Override
   public void teleopInit() {
-    // This makes sure that the autonomous stops running when
-    // teleop starts running. If you want the autonomous to
-    // continue until interrupted by another command, remove
-    // this line or comment it out.
+    RobotContainer.m_Limelight.setLightMode(3);
+    // new TestingShooter().schedule();
     
-    new SwerveControll().schedule();
-    RobotContainer.m_swerve.ZeroHeading();
+    // RobotContainer.m_swerve.ZeroHeading();
+    // RobotContainer.m_swerve.CollaborateGyro();
     RobotContainer.m_swerve.whetherstoreyaw = false;
     m_robotContainer = new RobotContainer();
+  
     if (m_autonomousCommand != null) {
       m_autonomousCommand.cancel();
     }
@@ -86,17 +119,88 @@ public class Robot extends TimedRobot {
 
   /** This function is called periodically during operator control. */
   @Override
-  public void teleopPeriodic() {}
+  public void teleopPeriodic() {
+    if(RobotContainer.m_driverController.getRightBumperPressed())
+    {
+      new ShootBall(false).schedule();
+      
+      RobotContainer.m_Intake.SetIntakeState(0, false);
+    }
+    if(RobotContainer.m_driverController.getPOV()==180||RobotContainer.m_testController.getPOV()==180)
+    {
+      RobotContainer.m_Climber.SetClimberOutput(1);
+      
+      RobotContainer.m_Intake.SetIntakeState(0, false);
+    }
+    else if(RobotContainer.m_driverController.getPOV()==0||RobotContainer.m_testController.getPOV()==0)
+    {
+      RobotContainer.m_Climber.SetClimberOutput(-1);;
+      
+      RobotContainer.m_Intake.SetIntakeState(0, false);
+    }
+    else
+    {
+      RobotContainer.m_Climber.SetClimberOutput(0);
+    }
+    if(RobotContainer.m_driverController.getYButtonPressed())
+    {
+      new HandShootBall().schedule();
+    }
+    if(RobotContainer.m_driverController.getAButton()||RobotContainer.m_testController.getAButton())
+    {
+      RobotContainer.m_Shooter.SetBlockerOutPut(0.6);
+    }
+    else
+    {
+      RobotContainer.m_Shooter.SetBlockerOutPut(0.);
+    }
+
+    if(RobotContainer.m_driverController.getLeftBumperPressed())
+    {
+      RobotContainer.m_Intake.SetIntakeState(0.6, true);
+    }
+    if(RobotContainer.m_driverController.getLeftBumperReleased())
+    {
+      RobotContainer.m_Intake.SetIntakeState(0, true);
+    }
+    if(RobotContainer.m_driverController.getLeftTriggerAxis()>0.3)
+    {
+      RobotContainer.m_Intake.SetIntakeState(0, false);
+    }
+  }
 
   @Override
   public void testInit() {
+    RobotContainer.m_Limelight.setLightMode(3);
+    
     // Cancels all running commands at the start of test mode.
     CommandScheduler.getInstance().cancelAll();
   }
 
   /** This function is called periodically during test mode. */
   @Override
-  public void testPeriodic() {}
+  public void testPeriodic() {
+    if(RobotContainer.m_driverController.getPOV()==180||RobotContainer.m_testController.getPOV()==180)
+    {
+      RobotContainer.m_Climber.SetClimberOutput(1);
+      
+      RobotContainer.m_Intake.SetIntakeState(0, false);
+    }
+    else if(RobotContainer.m_driverController.getPOV()==0||RobotContainer.m_testController.getPOV()==0)
+    {
+      RobotContainer.m_Climber.SetClimberOutput(-1);;
+      
+      RobotContainer.m_Intake.SetIntakeState(0, false);
+    }
+    else
+    {
+      RobotContainer.m_Climber.SetClimberOutput(0);
+    }
+    if(RobotContainer.m_driverController.getYButtonPressed())
+    {
+      new HandShootBall().schedule();
+    }
+  }
 
   /** This function is called once when the robot is first started up. */
   @Override
