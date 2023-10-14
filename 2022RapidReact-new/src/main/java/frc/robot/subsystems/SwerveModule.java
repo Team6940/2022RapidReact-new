@@ -16,6 +16,7 @@ import com.ctre.phoenix.sensors.SensorVelocityMeasPeriod;
 
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.networktables.NetworkTableEntry;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
@@ -27,6 +28,7 @@ import frc.robot.Constants;
 import frc.robot.RobotContainer;
 import frc.robot.Constants.SwerveConstants;
 import frc.robot.lib.team1678.util.CTREModuleState;
+import frc.robot.lib.team95.BetterSwerveModuleState;
 
 public class SwerveModule extends SubsystemBase {
   /** Creates a new SwerveModule. */
@@ -164,7 +166,14 @@ public class SwerveModule extends SubsystemBase {
       new Rotation2d(GetAngle())
     );
   }
-
+  public SwerveModulePosition GetPosition()
+  {
+    return new SwerveModulePosition(
+      drive_motor_.getSelectedSensorPosition() * drive_motor_inverted/
+    SwerveConstants.kDriveEncoderResolution *
+    SwerveConstants.kDriveEncoderReductionRatio *
+        SwerveConstants.kWheelDiameter/4. , new Rotation2d(GetAngle()));
+  }
   public void SetDesiredState(SwerveModuleState state,boolean isOpenLoop){
     double rawAngle = GetRawAngle();
     double angle = MathUtil.angleModulus(rawAngle);
@@ -235,6 +244,80 @@ public class SwerveModule extends SubsystemBase {
     if (pivot_motor_output_enabled) {
       pivot_motor_.set(ControlMode.MotionMagic,
           pivot_motor_inverted * pivotOutput);
+    }
+    lastAngle = Angle;
+  }
+  public void SetDesiredState(BetterSwerveModuleState state,boolean isOpenLoop){
+    double rawAngle = GetRawAngle();
+    double angle = MathUtil.angleModulus(rawAngle);
+
+    /**
+     * Prevent robot from driving automatically.
+     */
+    if(Math.abs(state.speedMetersPerSecond) <= (SwerveConstants.kMaxSpeed * 0.05)){
+      state.speedMetersPerSecond = 0;
+    }
+
+    SwerveModuleState optimalState = SwerveModuleState.optimize(
+      new SwerveModuleState(state.speedMetersPerSecond,state.angle), new Rotation2d(angle));
+    
+    double driveOutput = optimalState.speedMetersPerSecond /
+    (SwerveConstants.kWheelDiameter / 2.0) /
+    SwerveConstants.kDriveEncoderReductionRatio *
+    SwerveConstants.kDriveEncoderResolution * 0.1;
+
+    //final double CTREDriveOutput = Conversions.MPSToFalcon(optimalState.speedMetersPerSecond, Constants.SwerveConstants.wheelCircumference, Constants.SwerveConstants.driveGearRatio);
+
+    double optimalAngle = MathUtil.angleModulus(optimalState.angle.getRadians());
+    optimalAngle += rawAngle - angle;
+    if(Math.abs(rawAngle - optimalAngle) >= Math.PI * 0.5){
+      optimalAngle += Math.copySign(Math.PI * 2, 
+                      rawAngle - optimalAngle);
+    }
+
+    //Prevent rotating module if speed is less then 1%. Prevents Jittering.
+    double Angle = (Math.abs(state.speedMetersPerSecond) <= (SwerveConstants.kMaxSpeed * 0.01)) ? lastAngle : optimalAngle;
+    
+    double pivotOutput = Angle /
+    SwerveConstants.kPivotEncoderReductionRatio *
+    SwerveConstants.kPivotEncoderResolution *
+    pivot_encoder_inverted + offset_;
+
+    //double MaxFreeSpeed = Conversions.RPMToFalcon(6380, 1);
+
+    //double RealFreeSpeed = 6380 / 60 * Constants.SwerveConstants.driveGearRatio * Constants.kWheelDiameter * Math.PI;
+    //SmartDashboard.putNumber("FreeRealSpeed", RealFreeSpeed);
+
+    double percentOutput = feedforward.calculate(optimalState.speedMetersPerSecond);
+
+    SmartDashboard.putNumber("OptimalSpeed", optimalState.speedMetersPerSecond);
+    SmartDashboard.putNumber("Angle", pivotOutput);
+    SmartDashboard.putNumber("Debug/Drive/PercentOut", percentOutput);
+
+    if(isOpenLoop){
+      if (drive_motor_output_enabled) {
+        //drive_motor_.set(ControlMode.PercentOutput,
+        //    drive_motor_inverted * percentOutput);
+          
+        drive_motor_.set(ControlMode.Velocity, //TODO: Test combining FeedForward and velocity closed loop
+            drive_motor_inverted * driveOutput/*, DemandType.ArbitraryFeedForward,
+            drive_motor_inverted * percentOutput*/);
+      }
+    }
+    else{
+      if (drive_motor_output_enabled) {
+        drive_motor_.set(ControlMode.Velocity,
+            drive_motor_inverted * driveOutput);
+        /* Try combing PID Control with FeedForward */
+        
+        //drive_motor_.set(ControlMode.Velocity, //TODO: Test combining FeedForward and velocity closed loop
+        //    drive_motor_inverted * driveOutput, DemandType.ArbitraryFeedForward,
+        //    drive_motor_inverted * percentOutput);
+      }
+    }
+    if (pivot_motor_output_enabled) {
+      pivot_motor_.set(ControlMode.MotionMagic,
+          pivot_motor_inverted * pivotOutput,DemandType.ArbitraryFeedForward,pivot_motor_inverted*Math.toDegrees(state.omegaRadPerSecond)*Constants.SwerveConstants.piviotKV);
     }
     lastAngle = Angle;
   }

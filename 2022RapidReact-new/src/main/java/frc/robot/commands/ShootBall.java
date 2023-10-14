@@ -118,7 +118,7 @@ m_IsAuto=_IsAuto;
   public void end(boolean interrupted) 
   {
     RobotContainer.m_Shooter.SetBlockerOutPut(0.);
-    RobotContainer.m_Shooter.SetSpeed(1200);
+    RobotContainer.m_Shooter.SetSpeed(0);
     RobotContainer.m_Limelight.setLightMode(1);
   }
 

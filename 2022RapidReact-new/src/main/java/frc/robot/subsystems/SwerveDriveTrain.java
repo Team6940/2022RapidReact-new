@@ -16,6 +16,7 @@ import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveDriveOdometry;
+import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -25,6 +26,8 @@ import frc.robot.Constants.GlobalConstants;
 import frc.robot.Constants.SwerveConstants;
 import frc.robot.lib.team1706.FieldRelativeAccel;
 import frc.robot.lib.team1706.FieldRelativeSpeed;
+import frc.robot.lib.team95.BetterSwerveKinematics;
+import frc.robot.lib.team95.BetterSwerveModuleState;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
 
@@ -75,12 +78,7 @@ public class SwerveDriveTrain extends SubsystemBase {
         new Translation2d(-SwerveConstants.kLength / 2, -SwerveConstants.kWidth / 2)//back right
   );
 
-  public SwerveDriveOdometry odometry_ =
-      new SwerveDriveOdometry(
-        SwerveConstants.swerveKinematics,
-        new Rotation2d(0),
-        new Pose2d()
-  );
+  public SwerveDriveOdometry odometry_;
 
   public SwerveDriveTrain() {
 
@@ -93,6 +91,11 @@ public class SwerveDriveTrain extends SubsystemBase {
     swerve_modules_[2] = new SwerveModule(3, 4, false,  false, 711,  false, false);//back left
     swerve_modules_[3] = new SwerveModule(5, 6, false, false, 2651,  false, false);//back right
     
+  odometry_=new SwerveDriveOdometry(
+    SwerveConstants.swerveKinematics,
+    new Rotation2d(0),
+     getModulePositions(), new Pose2d()
+);
     //ahrs = new AHRS(SPI.Port.kMXP);
 
     //mPixy = PixyCamSPI.getInstance();
@@ -118,19 +121,27 @@ public class SwerveDriveTrain extends SubsystemBase {
       : new ChassisSpeeds(translation.getX() , translation.getY(), omega)
     );
 
-    SwerveDriveKinematics.desaturateWheelSpeeds(states, SwerveConstants.kMaxSpeed);
+    BetterSwerveKinematics.desaturateWheelSpeeds(states, SwerveConstants.kMaxSpeed);
       
     for(int i = 0;i < swerve_modules_.length;i++ ){
       swerve_modules_[i].SetDesiredState(states[i],isOpenloop);
     }
   }
-
+/**
+ * 这个是为了兼容旧代码蔡保留的，晚点删掉
+ * @param desiredStates
+ */
   public void SetModuleStates(SwerveModuleState[] desiredStates){
       SwerveDriveKinematics.desaturateWheelSpeeds(desiredStates, SwerveConstants.kMaxSpeed);
       for(int i = 0;i < swerve_modules_.length;i++){
         swerve_modules_[i].SetDesiredState(desiredStates[i], true);
       }  
-  }
+  }public void SetModuleStates(BetterSwerveModuleState[] desiredStates){
+    SwerveDriveKinematics.desaturateWheelSpeeds(desiredStates, SwerveConstants.kMaxSpeed);
+    for(int i = 0;i < swerve_modules_.length;i++){
+      swerve_modules_[i].SetDesiredState(desiredStates[i], true);
+    }  
+}
 
       /**
      * What the module states should be in hold mode. The wheels will be put in an X pattern to prevent the robot from moving.
@@ -255,7 +266,7 @@ public class SwerveDriveTrain extends SubsystemBase {
   }
 
   public void ResetOdometry(Pose2d pose){
-    odometry_.resetPosition(pose, GetGyroRotation2d());
+    odometry_.resetPosition(GetGyroRotation2d(), getModulePositions(),pose);
     //for (int i = 0 ; i < swerve_modules_.length; i++){
     //  swerve_modules_[i].setPose(pose);
     //}
@@ -295,7 +306,7 @@ public class SwerveDriveTrain extends SubsystemBase {
   }
 
   public void resetOdometry(){
-    odometry_.resetPosition(new Pose2d(), new Rotation2d());
+    odometry_.resetPosition(new Rotation2d(),getModulePositions(),new Pose2d());
   }
 
   public SwerveModuleState[] getStates(){
@@ -304,6 +315,15 @@ public class SwerveDriveTrain extends SubsystemBase {
       states[i] = swerve_modules_[i].GetState();
     }
     return states;
+  }
+  public SwerveModulePosition[] getModulePositions()
+  {
+    SwerveModulePosition[] _Positions=new SwerveModulePosition[swerve_modules_.length];
+    for(int i=0;i<swerve_modules_.length;++i)
+    {
+      _Positions[i]=swerve_modules_[i].GetPosition();
+    }
+    return _Positions;
   }
 
   public void zeroGyro(){
@@ -354,7 +374,7 @@ public class SwerveDriveTrain extends SubsystemBase {
     // This method will be called once per scheduler run
     odometry_.update(
       GetGyroRotation2d(), 
-      moduleStates);
+      getModulePositions());
 
     m_field.setRobotPose(getPose());
     if(enanbleTelemetry){
