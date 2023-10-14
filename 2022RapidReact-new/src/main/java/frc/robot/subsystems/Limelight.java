@@ -4,6 +4,7 @@ package frc.robot.subsystems;
 import java.util.OptionalDouble;
 
 import edu.wpi.first.math.filter.MedianFilter;
+import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -193,4 +194,8 @@ private static LinearInterpolationTable distTable = new LinearInterpolationTable
       SmartDashboard.putNumber("LimelightDistance", distance);
       return distance;
   }
+
+public Pose2d getPose() {
+    return null;
+}
 }

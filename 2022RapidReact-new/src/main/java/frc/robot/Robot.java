@@ -5,7 +5,10 @@
 package frc.robot;
 
 import edu.wpi.first.cameraserver.CameraServer;
+import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.TimedRobot;
+import edu.wpi.first.wpilibj.drive.RobotDriveBase;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
@@ -19,8 +22,13 @@ import frc.robot.commands.AutoFeed;
 import frc.robot.commands.HandShootBall;
 import frc.robot.commands.ShootBall;
 import frc.robot.commands.TestingShooter;
+import frc.robot.commands.SwerveControl.SemiAutoSwerveControll;
+import frc.robot.commands.SwerveControl.SemiAutoTrajCommandGenerator;
 import frc.robot.commands.SwerveControl.SwerveControll;
 import frc.robot.subsystems.Shooter;
+import java.util.ArrayList;
+import java.lang.Math;
+;
 
 /**
  * The VM is configured to automatically run this class, and to call the functions corresponding to
@@ -43,7 +51,7 @@ public class Robot extends TimedRobot {
     // Instantiate our RobotContainer.  This will perform all our button bindings, and put our
     CameraServer.startAutomaticCapture();
     RobotContainer.m_swerve.setDefaultCommand(new SwerveControll());
-    RobotContainer.m_Hopper.setDefaultCommand(new AutoFeed());
+    // RobotContainer.m_Hopper.setDefaultCommand(new AutoFeed());
     // autonomous chooser on the dashboard.
   }
 
@@ -89,13 +97,13 @@ public class Robot extends TimedRobot {
     //   m_autonomousCommand.schedule();
     // }
       
-    RobotContainer.m_swerve.ZeroHeading();
-    if(m_BallAuto==5)
-      new FiveBallAutoCommand().withTimeout(15.).schedule();
-    if(m_BallAuto==2)
-      new TwoBallAutoCommand().raceWith(new WaitCommand(15)).schedule();
-    if(m_BallAuto==1)
-      new OneBallAutoCommand().raceWith(new WaitCommand(15)).schedule();
+    // RobotContainer.m_swerve.ZeroHeading();
+    // if(m_BallAuto==5)
+    //   new FiveBallAutoCommand().withTimeout(15.).schedule();
+    // if(m_BallAuto==2)
+    //   new TwoBallAutoCommand().raceWith(new WaitCommand(15)).schedule();
+    // if(m_BallAuto==1)
+    //   new OneBallAutoCommand().raceWith(new WaitCommand(15)).schedule();
   }
 
   /** This function is called periodically during autonomous. */
@@ -111,6 +119,7 @@ public class Robot extends TimedRobot {
     // RobotContainer.m_swerve.CollaborateGyro();
     RobotContainer.m_swerve.whetherstoreyaw = false;
     m_robotContainer = new RobotContainer();
+    RobotContainer.m_swerve.ZeroHeading();;
   
     if (m_autonomousCommand != null) {
       m_autonomousCommand.cancel();
@@ -120,6 +129,33 @@ public class Robot extends TimedRobot {
   /** This function is called periodically during operator control. */
   @Override
   public void teleopPeriodic() {
+    if(RobotContainer.m_driverController.getAButtonPressed())
+    {
+      // new SemiAutoSwerveControll(new Pose2d(),1).schedule();;
+      
+      SemiAutoTrajCommandGenerator.SemiAutoPPSControl(new Pose2d[]{RobotContainer.m_swerve.getPose(), 
+        new Pose2d(2,0,new Rotation2d(Math.PI)),
+        new Pose2d(0,0,new Rotation2d(Math.PI))}).schedule();
+    }
+    if(RobotContainer.m_driverController.getBButtonPressed())
+    {
+      
+      SemiAutoTrajCommandGenerator.SemiAutoPPSControl(new Pose2d[]{RobotContainer.m_swerve.getPose(), 
+        new Pose2d(2,0,new Rotation2d(Math.PI/2.)),
+        new Pose2d(2,-2,new Rotation2d(Math.PI/2.))}).schedule();;
+    }
+    if(RobotContainer.m_driverController.getXButtonPressed())
+    {
+        SemiAutoTrajCommandGenerator.SemiAutoPPSControl(new Pose2d[]{RobotContainer.m_swerve.getPose(), 
+        new Pose2d(2,0,new Rotation2d(-Math.PI/2.)),
+        new Pose2d(2,2,new Rotation2d(-Math.PI/2.))}).schedule();;}
+    if(RobotContainer.m_driverController.getYButtonPressed())
+    { SemiAutoTrajCommandGenerator.SemiAutoPPSControl(new Pose2d[]{RobotContainer.m_swerve.getPose(), 
+      new Pose2d(2,0,new Rotation2d(0)),
+      new Pose2d(4,0,new Rotation2d(0))}).schedule();;
+    }
+    
+    
     if(RobotContainer.m_driverController.getRightBumperPressed())
     {
       new ShootBall(false).schedule();

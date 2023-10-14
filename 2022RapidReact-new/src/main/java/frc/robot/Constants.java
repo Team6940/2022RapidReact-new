@@ -9,7 +9,9 @@ import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
+import edu.wpi.first.math.trajectory.TrapezoidProfile.Constraints;
 import frc.robot.lib.team1706.LinearInterpolationTable;
+import frc.robot.lib.team95.BetterSwerveKinematics;
 
 import java.awt.geom.Point2D;
 /**
@@ -22,6 +24,19 @@ import java.awt.geom.Point2D;
  */
 public final class Constants 
 {
+    public static final class SemiAutoConstants{
+        public static final double kSemiAutoVelocityP=6 ;//TODO
+        public static final double kSemiAutoVelocityI=0.00;//TODO
+        public static final double kSemiAutoVelocityD=0.0;//TODO
+        public static final Constraints kSemiAutoVelocityConstrants =new Constraints(6,2);//TODO
+        public static final double SemiAutoVelocityMax=2;
+        public static final double kSemiAutoOmegaP=5;//TODO
+        public static final double kSemiAutoOmegaI=0.0;//TODO
+        public static final double kSemiAutoOmegaD=0.0;//TODO
+        public static final Constraints kSemiAutoOmegaConstrants =new Constraints(3,100);//TODO
+        public static final double SemiAutoOmegaSlewRate=2;
+        public static final double SemiAutoOmegaMax=2;
+    }
     public static final class IntakeConstants {
         public static final int IntakerPort = 11;
         public static final int IntakerSolenoidPort = 0;
@@ -177,6 +192,10 @@ public final class Constants
         public static final double driveKV = (2.8378 / 12);
         public static final double driveKA = (0.44473 / 12);
 
+        public static final double piviotKS = (1.322); //divide by 12 to convert from volts to percent output for CTRE
+        public static final double piviotKV = (0.0052807);
+        public static final double piviotKA = (0.44473 / 12);
+
         // Pigeon Port
         public static final int PigeonIMUPort = 17;
 
@@ -199,14 +218,14 @@ public final class Constants
          * 车子在行驶过程中基本不抖动，底盘PID大部分情况下是正常的。
          * 
          */
-        public static double kDriveMotorkP = 0.1; // 5e-2 0.05   0.025
+        public static double kDriveMotorkP = 0.15; // 5e-2 0.05   0.025
         public static double kDriveMotorkI = 0; //5e-4 0.005  0.0016
         public static double kDriveMotorkD = 0; //   5e-0 5 1.5  2.5
         public static double kDriveMotorkF = 0.042;//   0.045       0.06
         public static double kDriveMotorIZone = 0;// 90          240
         public static double kSensorVelocityMeasPeriod = 10;
     
-        public static double kPivotMotorkP = 3;//3
+        public static double kPivotMotorkP = 6;//3
         public static double kPivotMotorkI = 0;
         public static double kPivotMotorkD = 100;//100
         public static double kPivotMotorF = 0;
@@ -235,12 +254,10 @@ public final class Constants
     
         public static double kPeriod = 20;//The unit is 20_ms
     
-        public static double kMaxSpeed = 8;//The unit is meters per second 每个轮子的可以达到的最大转速，单位是m/s
+        public static double kMaxSpeed = 4;//The unit is meters per second 每个轮子的可以达到的最大转速，单位是m/s
     
-        public static final PIDController holonomicControllerPID = new PIDController(1, 0, 0);
-        public static final ProfiledPIDController holonomicControllerPIDTheta = new ProfiledPIDController(1, 0, 0, new TrapezoidProfile.Constraints(0, 0));
-    
-        public static final SwerveDriveKinematics swerveKinematics = new SwerveDriveKinematics(//define the position of each swervemodule by creating a coordinate system
+       
+        public static final BetterSwerveKinematics swerveKinematics = new BetterSwerveKinematics(//define the position of each swervemodule by creating a coordinate system
             new edu.wpi.first.math.geometry.Translation2d(kLength / 2.0, kWidth / 2.0),
             new edu.wpi.first.math.geometry.Translation2d(kLength / 2.0, -kWidth / 2.0),
             new edu.wpi.first.math.geometry.Translation2d(-kLength / 2.0, kWidth / 2.0),
@@ -279,8 +296,8 @@ public final class Constants
 		public static final double kFastMaxSpeedMetersPerSecond = 2;
 		public static final double kFastMaxAccelerationMetersPerSecondSquared = 2;
 		
-        public static final double kPXController = 3;
-        public static final double kPYController = 3;
+        public static final double kPXController = 8;
+        public static final double kPYController = 8;
         public static final double kPThetaController = 6;
         public static final double kIThetaController = 0;
         public static final double kDThetaController = 0;
