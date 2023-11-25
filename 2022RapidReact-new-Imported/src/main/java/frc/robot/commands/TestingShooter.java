@@ -7,9 +7,9 @@ package frc.robot.commands;
 import frc.robot.RobotContainer;
 import frc.robot.lib.team3476.net.editing.LiveEditableValue;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-import edu.wpi.first.wpilibj2.command.CommandBase;
+import edu.wpi.first.wpilibj2.command.Command;
 
-public class TestingShooter extends CommandBase {
+public class TestingShooter extends Command {
   
 
   public TestingShooter() {

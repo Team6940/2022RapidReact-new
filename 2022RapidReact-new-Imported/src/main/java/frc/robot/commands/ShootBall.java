@@ -9,10 +9,10 @@ import frc.robot.Constants.ShooterConstants;
 
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-import edu.wpi.first.wpilibj2.command.CommandBase;
+import edu.wpi.first.wpilibj2.command.Command;
 
 /** An example command that uses an example subsystem. */
-public class ShootBall extends CommandBase {
+public class ShootBall extends Command {
   
   public enum ShooterState {
     Aiming,Accelerating,Shooting
