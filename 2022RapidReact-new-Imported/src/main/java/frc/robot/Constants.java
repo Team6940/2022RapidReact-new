@@ -220,7 +220,7 @@ public final class Constants
          */
         public static double kDriveMotorkP = 0.15; // 5e-2 0.05   0.025
         public static double kDriveMotorkI = 0; //5e-4 0.005  0.0016
-        public static double kDriveMotorkD = 0; //   5e-0 5 1.5  2.5
+        public static double kDriveMotorkD = 0.00; //   5e-0 5 1.5  2.5
         public static double kDriveMotorkF = 0.042;//   0.045       0.06
         public static double kDriveMotorIZone = 0;// 90          240
         public static double kSensorVelocityMeasPeriod = 10;

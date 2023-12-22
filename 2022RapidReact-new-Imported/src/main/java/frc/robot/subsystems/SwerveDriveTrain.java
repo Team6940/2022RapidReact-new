@@ -7,6 +7,14 @@ package frc.robot.subsystems;
 import com.ctre.phoenix.sensors.PigeonIMU;
 import com.ctre.phoenix.sensors.WPI_Pigeon2;
 import com.ctre.phoenix.sensors.WPI_PigeonIMU;
+import com.pathplanner.lib.commands.FollowPathHolonomic;
+import com.pathplanner.lib.commands.FollowPathLTV;
+import com.pathplanner.lib.commands.FollowPathRamsete;
+import com.pathplanner.lib.commands.FollowPathWithEvents;
+import com.pathplanner.lib.path.PathPlannerPath;
+import com.pathplanner.lib.util.HolonomicPathFollowerConfig;
+import com.pathplanner.lib.util.PIDConstants;
+import com.pathplanner.lib.util.ReplanningConfig;
 
 import edu.wpi.first.wpilibj.SPI;
 import edu.wpi.first.math.controller.PIDController;
@@ -20,6 +28,7 @@ import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
 import frc.robot.Constants.GlobalConstants;
@@ -96,6 +105,7 @@ public class SwerveDriveTrain extends SubsystemBase {
     new Rotation2d(0),
      getModulePositions(), new Pose2d()
 );
+
     //ahrs = new AHRS(SPI.Port.kMXP);
 
     //mPixy = PixyCamSPI.getInstance();
@@ -160,7 +170,29 @@ public class SwerveDriveTrain extends SubsystemBase {
       new SwerveModuleState(0, Rotation2d.fromDegrees(45)),
       new SwerveModuleState(0, Rotation2d.fromDegrees(45))
   };
-
+public Command followPathCommand(String pathName){
+    PathPlannerPath path = PathPlannerPath.fromPathFile(pathName);
+    
+    // You must wrap the path following command in a FollowPathWithEvents command in order for event markers to work
+    return new FollowPathWithEvents(
+        new FollowPathHolonomic(
+            path,
+            this::getPose, // Robot pose supplier
+            this::getChassisSpeeds, // ChassisSpeeds supplier. MUST BE ROBOT RELATIVE
+            this::setChassisSpeeds, // Method that will drive the robot given ROBOT RELATIVE ChassisSpeeds
+            new HolonomicPathFollowerConfig( // HolonomicPathFollowerConfig, this should likely live in your Constants class
+                new PIDConstants(5.0, 0.0, 0.1), // Translation PID constants
+                new PIDConstants(9.0, 0.0, 0.0), // Rotation PID constants
+                3, // Max module speed, in m/s
+                0.4, // Drive base radius in meters. Distance from robot center to furthest module.
+                new ReplanningConfig() // Default path replanning config. See the API for the options here
+            ),
+            this // Reference to this subsystem to set requirements
+        ),
+        path, // FollowPathWithEvents also requires the path
+        this::getPose // FollowPathWithEvents also requires the robot pose supplier
+    );
+}
   /**
   * What the module states should be set to when we start climbing. All the wheels will face forward to make the robot easy to
   * push once it is disabled.

@@ -14,19 +14,20 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.SwerveControllerCommand;
 import edu.wpi.first.wpilibj2.command.WaitCommand;
-import frc.robot.Auto.FiveBallAutoCommand;
-import frc.robot.Auto.OneBallAutoCommand;
-import frc.robot.Auto.TwoBallAutoCommand;
 import frc.robot.Constants.IntakeConstants;
 import frc.robot.commands.AutoFeed;
 import frc.robot.commands.HandShootBall;
 import frc.robot.commands.ShootBall;
 import frc.robot.commands.TestingShooter;
 import frc.robot.commands.SwerveControl.SemiAutoSwerveControll;
-import frc.robot.commands.SwerveControl.SemiAutoTrajCommandGenerator;
 import frc.robot.commands.SwerveControl.SwerveControll;
 import frc.robot.subsystems.Shooter;
 import java.util.ArrayList;
+
+import com.pathplanner.lib.path.PathPlannerPath;
+import com.pathplanner.lib.pathfinding.LocalADStar;
+import com.pathplanner.lib.pathfinding.Pathfinding;
+
 import java.lang.Math;
 ;
 
@@ -49,7 +50,9 @@ public class Robot extends TimedRobot {
   @Override
   public void robotInit() {
     // Instantiate our RobotContainer.  This will perform all our button bindings, and put our
-    CameraServer.startAutomaticCapture();
+     Pathfinding.setPathfinder(new LocalADStar());
+
+    // CameraServer.startAutomaticCapture();
     RobotContainer.m_swerve.setDefaultCommand(new SwerveControll());
     RobotContainer.m_Hopper.setDefaultCommand(new AutoFeed());
     // autonomous chooser on the dashboard.
@@ -112,7 +115,7 @@ public class Robot extends TimedRobot {
 
   @Override
   public void teleopInit() {
-    RobotContainer.m_Limelight.setLightMode(3);
+    RobotContainer.m_Limelight.setLightMode(1);
     // new TestingShooter().schedule();
     
     // RobotContainer.m_swerve.ZeroHeading();
@@ -158,7 +161,9 @@ public class Robot extends TimedRobot {
     
     if(RobotContainer.m_driverController.getRightBumperPressed())
     {
-      new ShootBall(false).schedule();
+      Pose2d StartPose=PathPlannerPath.fromPathFile("Example Path").getPreviewStartingHolonomicPose();
+      RobotContainer.m_swerve.ResetOdometry(StartPose);
+    RobotContainer.m_swerve.followPathCommand("Example Path").schedule();
       
       RobotContainer.m_Intake.SetIntakeState(0, false);
     }
