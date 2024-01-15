@@ -10,9 +10,18 @@ import com.ctre.phoenix.motorcontrol.FeedbackDevice;
 import com.ctre.phoenix.motorcontrol.NeutralMode;
 import com.ctre.phoenix.motorcontrol.StatusFrameEnhanced;
 import com.ctre.phoenix.motorcontrol.SupplyCurrentLimitConfiguration;
-import com.ctre.phoenix.motorcontrol.can.WPI_TalonFX;
+import com.ctre.phoenix.motorcontrol.can.TalonSRX;
 import com.ctre.phoenix.motorcontrol.can.WPI_TalonSRX;
 import com.ctre.phoenix.sensors.SensorVelocityMeasPeriod;
+import com.ctre.phoenix6.configs.Slot0Configs;
+import com.ctre.phoenix6.controls.DutyCycleOut;
+import com.ctre.phoenix6.controls.VelocityDutyCycle;
+import com.ctre.phoenix6.controls.VoltageOut;
+import com.ctre.phoenix6.hardware.TalonFX;
+import com.ctre.phoenix6.signals.NeutralModeValue;
+import com.ctre.phoenix6.StatusSignal;
+import com.ctre.phoenix6.configs.MotorOutputConfigs;
+import com.ctre.phoenix6.signals.FeedbackSensorSourceValue;
 
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -29,12 +38,16 @@ import frc.robot.RobotContainer;
 import frc.robot.Constants.SwerveConstants;
 import frc.robot.lib.team1678.util.CTREModuleState;
 import frc.robot.lib.team95.BetterSwerveModuleState;
-
 public class SwerveModule extends SubsystemBase {
   /** Creates a new SwerveModule. */
-  private final WPI_TalonFX drive_motor_;
-  private final WPI_TalonSRX pivot_motor_;
+  private final TalonFX drive_motor_;
+  private final TalonSRX pivot_motor_;
   private double lastAngle;
+
+  private Slot0Configs m_drive_slot0Configs = new Slot0Configs();
+  private MotorOutputConfigs m_MotorOutputConfigs =new MotorOutputConfigs();
+  final DutyCycleOut m_DutyCycleOut = new DutyCycleOut(0);
+  final VelocityDutyCycle m_request = new VelocityDutyCycle(0,0,false,0,0,true, true, true);
   
   SimpleMotorFeedforward feedforward = new SimpleMotorFeedforward(Constants.SwerveConstants.driveKS, Constants.SwerveConstants.driveKV, Constants.SwerveConstants.driveKA);
 
@@ -51,28 +64,28 @@ public class SwerveModule extends SubsystemBase {
                       boolean driveMotorInvert, boolean pivotMotorInvert,
                       int pivotEncoderOffset, boolean pivotEncoderPhase,
                       boolean pivotEncoderInvert) {
-    drive_motor_ = new WPI_TalonFX(driveDeviceNumber);
+    drive_motor_ = new TalonFX(driveDeviceNumber);
     pivot_motor_ = new WPI_TalonSRX(pivotDeviceNumber); 
 
     //These two may let the swerve rotate itself many times when startup
     //drive_motor_.configFactoryDefault();
     //pivot_motor_.configFactoryDefault();
     
-    drive_motor_.setNeutralMode(NeutralMode.Brake);
+    drive_motor_.setNeutralMode(NeutralModeValue.Brake);
     pivot_motor_.setNeutralMode(NeutralMode.Coast);
-    drive_motor_.configPeakOutputForward( SwerveConstants.kDriveMotorMaxOutput);
-    drive_motor_.configPeakOutputReverse(-SwerveConstants.kDriveMotorMaxOutput);
+    m_MotorOutputConfigs.PeakForwardDutyCycle=SwerveConstants.kDriveMotorMaxOutput;
+    m_MotorOutputConfigs.PeakReverseDutyCycle=-SwerveConstants.kDriveMotorMaxOutput;
+    drive_motor_.getConfigurator().apply(m_MotorOutputConfigs);
     pivot_motor_.configPeakOutputForward( SwerveConstants.kPivotMotorMaxOutput);
     pivot_motor_.configPeakOutputReverse(-SwerveConstants.kPivotMotorMaxOutput);
-
-    drive_motor_.configSelectedFeedbackSensor(FeedbackDevice.IntegratedSensor);
+    
     pivot_motor_.configSelectedFeedbackSensor(FeedbackDevice.CTRE_MagEncoder_Absolute);
 
-    drive_motor_.config_kP(0, SwerveConstants.kDriveMotorkP);
-    drive_motor_.config_kI(0, SwerveConstants.kDriveMotorkI);
-    drive_motor_.config_kD(0, SwerveConstants.kDriveMotorkD);
-    drive_motor_.config_kF(0, SwerveConstants.kDriveMotorkF);
-    drive_motor_.config_IntegralZone(0, SwerveConstants.kDriveMotorIZone);
+    m_drive_slot0Configs.kP=SwerveConstants.kDriveMotorkP;
+    m_drive_slot0Configs.kI=SwerveConstants.kDriveMotorkI;
+    m_drive_slot0Configs.kD=SwerveConstants.kDriveMotorkD;
+    m_drive_slot0Configs.kV=SwerveConstants.kDriveMotorkF;
+    drive_motor_.getConfigurator().apply(m_drive_slot0Configs);
   
     pivot_motor_.config_kP(0, SwerveConstants.kPivotMotorkP);
     pivot_motor_.config_kI(0, SwerveConstants.kPivotMotorkI);
@@ -82,22 +95,17 @@ public class SwerveModule extends SubsystemBase {
     pivot_motor_.configMotionCruiseVelocity(SwerveConstants.motionCruiseVelocity);
     pivot_motor_.configMotionAcceleration(SwerveConstants.motionAcceleration);
 
-    drive_motor_.configOpenloopRamp(SwerveConstants.kLoopSeconds);
-    drive_motor_.configClosedloopRamp(SwerveConstants.kLoopSeconds);
 
     pivot_motor_.configOpenloopRamp(SwerveConstants.kLoopSeconds);
     pivot_motor_.configClosedloopRamp(SwerveConstants.kLoopSeconds);
 
     pivot_encoder_inverted = pivotEncoderInvert ? -1.0 : 1.0;
 
-    drive_motor_.configVoltageCompSaturation(12);
-    drive_motor_.enableVoltageCompensation(true);
+    //drive_motor_.configVoltageCompSaturation(12);
+    //drive_motor_.enableVoltageCompensation(true);//TODO
 
-    pivot_motor_.configVoltageCompSaturation(12);
-    pivot_motor_.enableVoltageCompensation(true);
-
-    drive_motor_.configVelocityMeasurementPeriod(SensorVelocityMeasPeriod.Period_25Ms);
-    drive_motor_.configVelocityMeasurementWindow(1);
+    //pivot_motor_.configVoltageCompSaturation(12);
+    //pivot_motor_.enableVoltageCompensation(true);
 
     // Sets current limits for motors
     //drive_motor_.configSupplyCurrentLimit(new SupplyCurrentLimitConfiguration(true,
@@ -153,7 +161,7 @@ public class SwerveModule extends SubsystemBase {
   }
 
   public double GetDriveMotorOutput(){
-    return drive_motor_.getMotorOutputPercent();
+    return drive_motor_.get();
   }
 
   public double GetPivotMotorOutput(){
@@ -169,10 +177,7 @@ public class SwerveModule extends SubsystemBase {
   public SwerveModulePosition GetPosition()
   {
     return new SwerveModulePosition(
-      drive_motor_.getSelectedSensorPosition() * drive_motor_inverted/
-    SwerveConstants.kDriveEncoderResolution *
-    SwerveConstants.kDriveEncoderReductionRatio *
-        SwerveConstants.kWheelDiameter/4. , new Rotation2d(GetAngle()));
+      drive_motor_.getRotorPosition().getValue() *Math.PI*Constants.SwerveConstants.kWheelDiameter, new Rotation2d(GetAngle()));
   }
   public void SetDesiredState(SwerveModuleState state,boolean isOpenLoop){
     double rawAngle = GetRawAngle();
@@ -189,9 +194,7 @@ public class SwerveModule extends SubsystemBase {
       state, new Rotation2d(angle));
 
     double driveOutput = optimalState.speedMetersPerSecond /
-    (SwerveConstants.kWheelDiameter / 2.0) /
-    SwerveConstants.kDriveEncoderReductionRatio *
-    SwerveConstants.kDriveEncoderResolution * 0.1;
+    SwerveConstants.kWheelDiameter  /Math.PI;
 
     //final double CTREDriveOutput = Conversions.MPSToFalcon(optimalState.speedMetersPerSecond, Constants.SwerveConstants.wheelCircumference, Constants.SwerveConstants.driveGearRatio);
 
@@ -219,26 +222,23 @@ public class SwerveModule extends SubsystemBase {
 
     SmartDashboard.putNumber("OptimalSpeed", optimalState.speedMetersPerSecond);
     SmartDashboard.putNumber("Debug/Drive/PercentOut", percentOutput);
-
     if(isOpenLoop){
       if (drive_motor_output_enabled) {
         //drive_motor_.set(ControlMode.PercentOutput,
         //    drive_motor_inverted * percentOutput);
           
-        drive_motor_.set(ControlMode.Velocity, //TODO: Test combining FeedForward and velocity closed loop
-            drive_motor_inverted * driveOutput/*, DemandType.ArbitraryFeedForward,
-            drive_motor_inverted * percentOutput*/);
+        //drive_motor_.set(ControlMode.Velocity, //TODO: Test combining FeedForward and velocity closed loop
+        //    drive_motor_inverted * driveOutput/*, DemandType.ArbitraryFeedForward,
+         //   drive_motor_inverted * percentOutput*/);
+        drive_motor_.setControl(m_request.withVelocity(drive_motor_inverted * driveOutput));
       }
     }
     else{
       if (drive_motor_output_enabled) {
-        drive_motor_.set(ControlMode.Velocity,
-            drive_motor_inverted * driveOutput);
+        drive_motor_.setControl(m_request.withVelocity(drive_motor_inverted * driveOutput));
         /* Try combing PID Control with FeedForward */
         
-        //drive_motor_.set(ControlMode.Velocity, //TODO: Test combining FeedForward and velocity closed loop
-        //    drive_motor_inverted * driveOutput, DemandType.ArbitraryFeedForward,
-        //    drive_motor_inverted * percentOutput);
+       
       }
     }
     if (pivot_motor_output_enabled) {
@@ -261,10 +261,7 @@ public class SwerveModule extends SubsystemBase {
     SwerveModuleState optimalState = SwerveModuleState.optimize(
       new SwerveModuleState(state.speedMetersPerSecond,state.angle), new Rotation2d(angle));
     
-    double driveOutput = optimalState.speedMetersPerSecond /
-    (SwerveConstants.kWheelDiameter / 2.0) /
-    SwerveConstants.kDriveEncoderReductionRatio *
-    SwerveConstants.kDriveEncoderResolution * 0.1;
+    double driveOutput = optimalState.speedMetersPerSecond *Math.PI*Constants.SwerveConstants.kWheelDiameter;
 
     //final double CTREDriveOutput = Conversions.MPSToFalcon(optimalState.speedMetersPerSecond, Constants.SwerveConstants.wheelCircumference, Constants.SwerveConstants.driveGearRatio);
 
@@ -299,15 +296,15 @@ public class SwerveModule extends SubsystemBase {
         //drive_motor_.set(ControlMode.PercentOutput,
         //    drive_motor_inverted * percentOutput);
           
-        drive_motor_.set(ControlMode.Velocity, //TODO: Test combining FeedForward and velocity closed loop
-            drive_motor_inverted * driveOutput/*, DemandType.ArbitraryFeedForward,
-            drive_motor_inverted * percentOutput*/);
+        //drive_motor_.set(ControlMode.Velocity, //TODO: Test combining FeedForward and velocity closed loop
+        //    drive_motor_inverted * driveOutput/*, DemandType.ArbitraryFeedForward,
+        //    drive_motor_inverted * percentOutput*/);
+        drive_motor_.setControl(m_request.withVelocity(drive_motor_inverted * driveOutput));
       }
     }
     else{
       if (drive_motor_output_enabled) {
-        drive_motor_.set(ControlMode.Velocity,
-            drive_motor_inverted * driveOutput);
+          drive_motor_.setControl(m_request);
         /* Try combing PID Control with FeedForward */
         
         //drive_motor_.set(ControlMode.Velocity, //TODO: Test combining FeedForward and velocity closed loop
@@ -316,69 +313,69 @@ public class SwerveModule extends SubsystemBase {
       }
     }
     if (pivot_motor_output_enabled) {
-      pivot_motor_.set(ControlMode.MotionMagic,
+      pivot_motor_.set(ControlMode.MotionMagic,//TODO
           pivot_motor_inverted * pivotOutput,DemandType.ArbitraryFeedForward,pivot_motor_inverted*Math.toDegrees(state.omegaRadPerSecond)*Constants.SwerveConstants.piviotKV);
     }
     lastAngle = Angle;
   }
-
+  
   public double GetDriveMotorVoltage(){
-    /*The unit is volt*/
-    return drive_motor_.getBusVoltage();
+    //The unit is volt
+    return drive_motor_.getMotorVoltage().getValue();
   }
 
   public double GetTurnMotorVoltage(){
-    /*The unit is volt*/
+    //The unit is volt
     return pivot_motor_.getBusVoltage();
   }
 
   public double GetDriveMotorOutputVoltage(){
-    /*The unit is volt*/
-    return drive_motor_.getMotorOutputVoltage();
+    //The unit is volt
+    return drive_motor_.getMotorVoltage().getValue();
   }
 
   public double GetTurnMotorOutputVoltage(){
-    /*The unit is volt*/
+    //The unit is volt
     return pivot_motor_.getMotorOutputVoltage();
   }
 
   public double GetDriveMotorCurrent(){
-    /*The unit is ampere*/
-    return drive_motor_.getSupplyCurrent();
+    //The unit is ampere
+    return drive_motor_.getSupplyCurrent().getValue();
   }
 
   public double GetTurnMotorCurrent(){
-    /*The unit is ampere*/
+    //The unit is ampere
     return pivot_motor_.getSupplyCurrent();
   }
 
   public double GetDriveMotorPower(){
-    /*The unit is watt*/
+    //The unit is watt
     return GetDriveMotorVoltage() * GetDriveMotorCurrent();
   }
 
   public double GetTurnMotorPower(){
-    /*The unit is watt*/
+    //The unit is watt
     return GetTurnMotorVoltage() * GetTurnMotorCurrent();
   }
 
   public double GetTotalCurrent(){
-    /*The unit is ampere*/
+    //The unit is ampere
     return GetDriveMotorCurrent() + GetTurnMotorCurrent();
   }
 
   public double GetTotalPower(){
-    /*The unit is watt*/
+    //The unit is watt
     return GetDriveMotorPower() + GetTurnMotorPower();
   }
 
   public double GetDriveMotorTemperature(){
-    /*The unit is celsius */
-    return drive_motor_.getTemperature();
+    //The unit is celsius 
+    return drive_motor_.getDeviceTemp().getValue();
   }
 
   public double GetPivotMotorTemperature(){
-    /*The unit is celsius */
+    //The unit is celsius 
     return pivot_motor_.getTemperature();
   }
 
@@ -403,10 +400,7 @@ public class SwerveModule extends SubsystemBase {
   public double GetSpeed(){
     /*The unit is meters_per_second */
     return
-        drive_motor_.getSelectedSensorVelocity() * drive_motor_inverted / 0.1 /
-        SwerveConstants.kDriveEncoderResolution *
-        SwerveConstants.kDriveEncoderReductionRatio *
-            SwerveConstants.kWheelDiameter / 2;
+        drive_motor_.getVelocity().getValue() * drive_motor_inverted *Math.PI*Constants.SwerveConstants.kWheelDiameter ;
     //return Conversions.falconToMPS(drive_motor_.getSelectedSensorVelocity(), Constants.kWheelDiameter * Math.PI,
     //    Constants.kDriveEncoderReductionRatioTest);
   }
